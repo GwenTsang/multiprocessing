@@ -15,7 +15,9 @@ import fitz  # PyMuPDF
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 
-OUT_DIR_BASE: Path = Path("texts")     # output base folder (relative to CWD)
+RAW_DIR: Path = Path("raw_documents")  # folder containing PDFs
+OUT_DIR_BASE: Path = Path("texts")     # output base folder
+RESULTS_JSON: Path = Path("results.json")
 
 
 MODE: str = "both"  # "single", "process", or "both"
@@ -174,7 +176,6 @@ def run_process_pool(pdfs: List[Path], raw_root: Path, out_root: Path, skip_exis
 
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("input_path", type=Path, help="Folder containing PDFs")
     ap.add_argument("--cpu-name", required=True)
     args = ap.parse_args(argv)
 
@@ -183,9 +184,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     max_workers = WORKERS if WORKERS and WORKERS > 0 else (cpu_cores or 1)
 
 
-    raw_root = args.input_path.resolve()
+    raw_root = RAW_DIR.resolve()
     out_base = OUT_DIR_BASE.resolve()
-    results_path = (raw_root / "results.json").resolve()
+    results_path = RESULTS_JSON.resolve()
 
 
     pdfs = list_pdfs(raw_root)
@@ -200,7 +201,7 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     payload: Dict[str, Any] = {
         "cpu_name": args.cpu_name,
-        "cup_name": args.cpu_name,
+        "cup_name": args.cpu_name,  # kept because you requested this JSON entry name too
         "cpu_cores_os_cpu_count": cpu_cores,
         "platform": {
             "system": platform.system(),
