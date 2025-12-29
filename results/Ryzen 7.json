@@ -1,6 +1,6 @@
 {
-  "cpu_name": "Ryzen 7",
-  "cup_name": "Ryzen 7",
+  "cpu_name": "AMD Ryzen 7 3700X",
+  "cup_name": "AMD Ryzen 7 3700X",
   "cpu_cores_os_cpu_count": 16,
   "platform": {
     "system": "Windows",
@@ -60,4 +60,5 @@
       "time_ratio_single_over_process": 6.421601794026773
     }
   }
+
 }
