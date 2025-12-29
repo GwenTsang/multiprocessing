@@ -239,4 +239,29 @@ def main(argv: Optional[List[str]] = None) -> int:
 
         if "single" in payload["results"] and "process" in payload["results"]:
             t1 = float(payload["results"]["single"].get("total_time_sec") or 0.0)
-            t2 = float(payload["results"]["process"].get("total_time_sec")
+            t2 = float(payload["results"]["process"].get("total_time_sec") or 0.0)
+            speedup_pct = ((t1 - t2) / t1 * 100.0) if t1 > 0 else 0.0
+            ratio = (t1 / t2) if (t2 > 0) else None
+            payload["results"]["comparison"] = {
+                "single_total_sec": t1,
+                "process_total_sec": t2,
+                "speedup_percent": float(speedup_pct),
+                "time_ratio_single_over_process": ratio,
+            }
+
+
+        results_path.parent.mkdir(parents=True, exist_ok=True)
+        with results_path.open("w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2, ensure_ascii=False)
+        return 0
+
+
+    except Exception as e:
+        payload["fatal_error"] = "".join(traceback.format_exception_only(type(e), e)).strip()
+        results_path.parent.mkdir(parents=True, exist_ok=True)
+        with results_path.open("w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2, ensure_ascii=False)
+        return 2
+
+if __name__ == "__main__":
+    raise SystemExit(main())
