@@ -1,0 +1,63 @@
+{
+  "cpu_name": "Ryzen 7",
+  "cup_name": "Ryzen 7",
+  "cpu_cores_os_cpu_count": 16,
+  "platform": {
+    "system": "Windows",
+    "release": "10",
+    "machine": "AMD64",
+    "python_version": "3.12.1"
+  },
+  "paths": {
+    "raw_dir": "C:\\Users\\Philo\\raw_documents",
+    "out_dir_base": "C:\\Users\\Philo\\texts",
+    "results_json": "C:\\Users\\Philo\\results.json"
+  },
+  "config": {
+    "mode": "both",
+    "skip_existing": false,
+    "workers": 16,
+    "limit": 0,
+    "errors_sample": 10
+  },
+  "pdf_count": 500,
+  "results": {
+    "single": {
+      "n_total": 500,
+      "n_ok": 500,
+      "n_err": 0,
+      "n_skipped": 0,
+      "n_processed": 500,
+      "total_time_sec": 17.228564899996854,
+      "mean_time_sec_ok": 0.034445625400403516,
+      "median_time_sec_ok": 0.019033049989957362,
+      "mean_time_sec_processed": 0.034445625400403516,
+      "median_time_sec_processed": 0.019033049989957362,
+      "errors_sample": [],
+      "pdfs_per_sec_ok": 29.02156986970466,
+      "pdfs_per_sec_processed": 29.02156986970466
+    },
+    "process": {
+      "n_total": 500,
+      "n_ok": 500,
+      "n_err": 0,
+      "n_skipped": 0,
+      "n_processed": 500,
+      "total_time_sec": 2.682907700072974,
+      "mean_time_sec_ok": 0.058477828603237865,
+      "median_time_sec_ok": 0.03468655003234744,
+      "mean_time_sec_processed": 0.058477828603237865,
+      "median_time_sec_processed": 0.03468655003234744,
+      "errors_sample": [],
+      "pdfs_per_sec_ok": 186.36496514076882,
+      "pdfs_per_sec_processed": 186.36496514076882,
+      "max_workers": 16
+    },
+    "comparison": {
+      "single_total_sec": 17.228564899996854,
+      "process_total_sec": 2.682907700072974,
+      "speedup_percent": 84.42756134567271,
+      "time_ratio_single_over_process": 6.421601794026773
+    }
+  }
+}
