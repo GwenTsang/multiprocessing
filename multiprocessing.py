@@ -1,16 +1,6 @@
 #!/usr/bin/env python3
-"""
-PDF -> TXT benchmark (single process vs multi-process) with silent ZIP extraction
-and JSON-only results (no prints).
-
-Dependency:
-  pip install PyMuPDF
-
-Run:
-  python benchmark_pdf_extract.py --cpu-name "AMD Ryzen 7 3700X"
-"""
-
 from __future__ import annotations
+
 
 import argparse
 import json
@@ -19,25 +9,17 @@ import platform
 import statistics
 import time
 import traceback
-import zipfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-
 import fitz  # PyMuPDF
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 
-# =============================
-# Fixed configuration (edit these)
-# =============================
-
-ZIP_PATH: Optional[Path] = None  # e.g. Path("raw_documents.zip") or None to skip extraction
-EXTRACT_TO: Path = Path(".")     # where to extract ZIP (silent)
-RAW_DIR: Path = Path("raw_documents")  # folder containing PDFs (after extraction)
-
+RAW_DIR: Path = Path("raw_documents")  # folder containing PDFs
 OUT_DIR_BASE: Path = Path("texts")     # output base folder
 RESULTS_JSON: Path = Path("results.json")
+
 
 MODE: str = "both"  # "single", "process", or "both"
 WORKERS: int = 0    # 0 => os.cpu_count()
@@ -45,16 +27,9 @@ SKIP_EXISTING: bool = False  # True => skip PDFs whose output .txt exists and is
 LIMIT: int = 0      # 0 => all PDFs, else first N (deterministic)
 ERRORS_SAMPLE: int = 10  # how many (file, error) pairs to include in JSON
 
-
 # =============================
 # Utilities
 # =============================
-
-def extract_zip_silent(zip_path: Path, extract_to: Path) -> None:
-    """Extract a zip without printing file names."""
-    extract_to.mkdir(parents=True, exist_ok=True)
-    with zipfile.ZipFile(zip_path, "r") as zf:
-        zf.extractall(extract_to)
 
 
 def list_pdfs(root: Path) -> List[Path]:
@@ -94,12 +69,15 @@ def extract_text_pymupdf(pdf_path: Path) -> str:
 # Worker (top-level for Windows ProcessPool pickling)
 # =============================
 
+
 @dataclass(frozen=True)
 class FileResult:
     ok: bool
     skipped: bool
     seconds: float
     error: Optional[str]
+
+
 
 
 def process_one_pdf(pdf_path_str: str, raw_root_str: str, out_root_str: str, skip_existing: bool) -> Tuple[str, str, FileResult]:
@@ -109,22 +87,28 @@ def process_one_pdf(pdf_path_str: str, raw_root_str: str, out_root_str: str, ski
     out_root = Path(out_root_str)
     out_path = target_txt_path(pdf_path, raw_root, out_root)
 
+
     try:
         if skip_existing and out_path.exists() and out_path.stat().st_size > 0:
             return (str(pdf_path), str(out_path), FileResult(ok=True, skipped=True, seconds=time.perf_counter() - t0, error=None))
 
+
         text = extract_text_pymupdf(pdf_path)
         write_text(out_path, text)
         return (str(pdf_path), str(out_path), FileResult(ok=True, skipped=False, seconds=time.perf_counter() - t0, error=None))
+
 
     except Exception as e:
         err = "".join(traceback.format_exception_only(type(e), e)).strip()
         return (str(pdf_path), str(out_path), FileResult(ok=False, skipped=False, seconds=time.perf_counter() - t0, error=err))
 
 
+
+
 # =============================
 # Aggregation + Runs
 # =============================
+
 
 def summarize_file_results(results: List[Tuple[str, str, FileResult]], total_seconds: float, errors_sample_n: int) -> Dict[str, Any]:
     oks = [r for (_, _, r) in results if r.ok]
@@ -132,14 +116,18 @@ def summarize_file_results(results: List[Tuple[str, str, FileResult]], total_sec
     skipped = [r for (_, _, r) in results if r.ok and r.skipped]
     processed = [r for (_, _, r) in results if r.ok and not r.skipped]
 
+
     def _mean(xs: List[float]) -> float:
         return float(statistics.fmean(xs)) if xs else 0.0
+
 
     def _median(xs: List[float]) -> float:
         return float(statistics.median(xs)) if xs else 0.0
 
+
     times_ok = [r.seconds for r in oks]
     times_processed = [r.seconds for r in processed]
+
 
     out: Dict[str, Any] = {
         "n_total": len(results),
@@ -159,6 +147,8 @@ def summarize_file_results(results: List[Tuple[str, str, FileResult]], total_sec
     return out
 
 
+
+
 def run_single(pdfs: List[Path], raw_root: Path, out_root: Path, skip_existing: bool) -> Tuple[List[Tuple[str, str, FileResult]], float]:
     results: List[Tuple[str, str, FileResult]] = []
     t0 = time.perf_counter()
@@ -167,54 +157,49 @@ def run_single(pdfs: List[Path], raw_root: Path, out_root: Path, skip_existing: 
     return results, time.perf_counter() - t0
 
 
+
+
 def run_process_pool(pdfs: List[Path], raw_root: Path, out_root: Path, skip_existing: bool, max_workers: int) -> Tuple[List[Tuple[str, str, FileResult]], float]:
     results: List[Tuple[str, str, FileResult]] = []
     t0 = time.perf_counter()
+
 
     with ProcessPoolExecutor(max_workers=max_workers) as ex:
         futs = [ex.submit(process_one_pdf, str(p), str(raw_root), str(out_root), skip_existing) for p in pdfs]
         for fut in as_completed(futs):
             results.append(fut.result())
 
+
     results.sort(key=lambda x: x[0])  # deterministic
     return results, time.perf_counter() - t0
 
-
-# =============================
 # Main
-# =============================
+
 
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--cpu-name", required=True, help='Full CPU name string for JSON, e.g. "AMD Ryzen 7 3700X"')
     args = ap.parse_args(argv)
 
+
     cpu_cores = os.cpu_count() or 0
     max_workers = WORKERS if WORKERS and WORKERS > 0 else (cpu_cores or 1)
 
-    extract_to = EXTRACT_TO.resolve()
+
     raw_root = RAW_DIR.resolve()
     out_base = OUT_DIR_BASE.resolve()
     results_path = RESULTS_JSON.resolve()
 
-    zip_used: Optional[str] = None
-    if ZIP_PATH is not None:
-        zip_path = ZIP_PATH.resolve()
-        zip_used = str(zip_path)
-        extract_zip_silent(zip_path, extract_to)
-
-        # If RAW_DIR is relative and extraction happened somewhere else, prefer EXTRACT_TO/RAW_DIR
-        candidate = (extract_to / RAW_DIR).resolve()
-        if candidate.exists():
-            raw_root = candidate
 
     pdfs = list_pdfs(raw_root)
     if LIMIT and LIMIT > 0:
         pdfs = pdfs[:LIMIT]
 
+
     # Separate output dirs so MODE="both" doesn't contaminate runs with SKIP_EXISTING
     out_single = out_base / "single"
     out_proc = out_base / "process"
+
 
     payload: Dict[str, Any] = {
         "cpu_name": args.cpu_name,
@@ -227,8 +212,6 @@ def main(argv: Optional[List[str]] = None) -> int:
             "python_version": platform.python_version(),
         },
         "paths": {
-            "zip_path": zip_used,
-            "extract_to": str(extract_to),
             "raw_dir": str(raw_root),
             "out_dir_base": str(out_base),
             "results_json": str(results_path),
@@ -244,15 +227,18 @@ def main(argv: Optional[List[str]] = None) -> int:
         "results": {},
     }
 
+
     try:
         if MODE in ("single", "both"):
             single_results, single_total = run_single(pdfs, raw_root, out_single, SKIP_EXISTING)
             payload["results"]["single"] = summarize_file_results(single_results, single_total, ERRORS_SAMPLE)
 
+
         if MODE in ("process", "both"):
             proc_results, proc_total = run_process_pool(pdfs, raw_root, out_proc, SKIP_EXISTING, max_workers=max_workers)
             payload["results"]["process"] = summarize_file_results(proc_results, proc_total, ERRORS_SAMPLE)
             payload["results"]["process"]["max_workers"] = int(max_workers)
+
 
         if "single" in payload["results"] and "process" in payload["results"]:
             t1 = float(payload["results"]["single"].get("total_time_sec") or 0.0)
@@ -266,10 +252,12 @@ def main(argv: Optional[List[str]] = None) -> int:
                 "time_ratio_single_over_process": ratio,
             }
 
+
         results_path.parent.mkdir(parents=True, exist_ok=True)
         with results_path.open("w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2, ensure_ascii=False)
         return 0
+
 
     except Exception as e:
         payload["fatal_error"] = "".join(traceback.format_exception_only(type(e), e)).strip()
@@ -277,7 +265,6 @@ def main(argv: Optional[List[str]] = None) -> int:
         with results_path.open("w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2, ensure_ascii=False)
         return 2
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
