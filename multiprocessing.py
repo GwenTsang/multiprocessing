@@ -25,7 +25,7 @@ MODE: str = "both"  # "single", "process", or "both"
 WORKERS: int = 0    # 0 => os.cpu_count()
 SKIP_EXISTING: bool = False  # True => skip PDFs whose output .txt exists and is non-empty
 LIMIT: int = 0      # 0 => all PDFs, else first N (deterministic)
-ERRORS_SAMPLE: int = 10  # how many (file, error) pairs to include in JSON
+ERRORS_SAMPLE: int = 5  # how many (file, error) pairs to include in JSON
 
 # =============================
 # Utilities
@@ -175,7 +175,6 @@ def run_process_pool(pdfs: List[Path], raw_root: Path, out_root: Path, skip_exis
 
 # Main
 
-
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--cpu-name", required=True, help='Full CPU name string for JSON, e.g. "AMD Ryzen 7 3700X"')
@@ -268,3 +267,4 @@ def main(argv: Optional[List[str]] = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
