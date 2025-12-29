@@ -1,1 +1,63 @@
-
+{
+  "cpu_name": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+  "cup_name": "Intel(R) Xeon(R) CPU @ 2.20GHz",
+  "cpu_cores_os_cpu_count": 2,
+  "platform": {
+    "system": "Linux",
+    "release": "6.6.105+",
+    "machine": "x86_64",
+    "python_version": "3.12.12"
+  },
+  "paths": {
+    "raw_dir": "/content/raw_documents",
+    "out_dir_base": "/content/texts",
+    "results_json": "/content/results.json"
+  },
+  "config": {
+    "mode": "both",
+    "skip_existing": false,
+    "workers": 2,
+    "limit": 0,
+    "errors_sample": 10
+  },
+  "pdf_count": 500,
+  "results": {
+    "single": {
+      "n_total": 500,
+      "n_ok": 500,
+      "n_err": 0,
+      "n_skipped": 0,
+      "n_processed": 500,
+      "total_time_sec": 31.20465220599999,
+      "mean_time_sec_ok": 0.06239158484199948,
+      "median_time_sec_ok": 0.0374495940000088,
+      "mean_time_sec_processed": 0.06239158484199948,
+      "median_time_sec_processed": 0.0374495940000088,
+      "errors_sample": [],
+      "pdfs_per_sec_ok": 16.023251811916065,
+      "pdfs_per_sec_processed": 16.023251811916065
+    },
+    "process": {
+      "n_total": 500,
+      "n_ok": 500,
+      "n_err": 0,
+      "n_skipped": 0,
+      "n_processed": 500,
+      "total_time_sec": 26.065001838000057,
+      "mean_time_sec_ok": 0.10339280571799622,
+      "median_time_sec_ok": 0.05849904200005085,
+      "mean_time_sec_processed": 0.10339280571799622,
+      "median_time_sec_processed": 0.05849904200005085,
+      "errors_sample": [],
+      "pdfs_per_sec_ok": 19.182810847573087,
+      "pdfs_per_sec_processed": 19.182810847573087,
+      "max_workers": 2
+    },
+    "comparison": {
+      "single_total_sec": 31.20465220599999,
+      "process_total_sec": 26.065001838000057,
+      "speedup_percent": 16.470782414334003,
+      "time_ratio_single_over_process": 1.1971858816640044
+    }
+  }
+}
