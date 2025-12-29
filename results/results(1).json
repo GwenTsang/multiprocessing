@@ -1,0 +1,63 @@
+{
+  "cpu_name": "ml.c6i.2xlarge",
+  "cup_name": "ml.c6i.2xlarge",
+  "cpu_cores_os_cpu_count": 8,
+  "platform": {
+    "system": "Linux",
+    "release": "6.1.158-180.294.amzn2023.x86_64",
+    "machine": "x86_64",
+    "python_version": "3.12.9"
+  },
+  "paths": {
+    "raw_dir": "/home/sagemaker-user/raw_documents",
+    "out_dir_base": "/home/sagemaker-user/texts",
+    "results_json": "/home/sagemaker-user/results.json"
+  },
+  "config": {
+    "mode": "both",
+    "skip_existing": false,
+    "workers": 8,
+    "limit": 0,
+    "errors_sample": 10
+  },
+  "pdf_count": 500,
+  "results": {
+    "single": {
+      "n_total": 500,
+      "n_ok": 500,
+      "n_err": 0,
+      "n_skipped": 0,
+      "n_processed": 500,
+      "total_time_sec": 15.622674534999987,
+      "mean_time_sec_ok": 0.031238787379996667,
+      "median_time_sec_ok": 0.018033100999900853,
+      "mean_time_sec_processed": 0.031238787379996667,
+      "median_time_sec_processed": 0.018033100999900853,
+      "errors_sample": [],
+      "pdfs_per_sec_ok": 32.004763261235055,
+      "pdfs_per_sec_processed": 32.004763261235055
+    },
+    "process": {
+      "n_total": 500,
+      "n_ok": 500,
+      "n_err": 0,
+      "n_skipped": 0,
+      "n_processed": 500,
+      "total_time_sec": 3.750120170999935,
+      "mean_time_sec_ok": 0.05537092027200015,
+      "median_time_sec_ok": 0.031010475000016413,
+      "mean_time_sec_processed": 0.05537092027200015,
+      "median_time_sec_processed": 0.031010475000016413,
+      "errors_sample": [],
+      "pdfs_per_sec_ok": 133.32906072358733,
+      "pdfs_per_sec_processed": 133.32906072358733,
+      "max_workers": 8
+    },
+    "comparison": {
+      "single_total_sec": 15.622674534999987,
+      "process_total_sec": 3.750120170999935,
+      "speedup_percent": 75.99565834519295,
+      "time_ratio_single_over_process": 4.165913043483709
+    }
+  }
+}
