@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-
 import argparse
 import json
 import os
@@ -16,16 +15,14 @@ import fitz  # PyMuPDF
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 
-RAW_DIR: Path = Path("raw_documents")  # folder containing PDFs
-OUT_DIR_BASE: Path = Path("texts")     # output base folder
-RESULTS_JSON: Path = Path("results.json")
+OUT_DIR_BASE: Path = Path("texts")     # output base folder (relative to CWD)
 
 
 MODE: str = "both"  # "single", "process", or "both"
 WORKERS: int = 0    # 0 => os.cpu_count()
 SKIP_EXISTING: bool = False  # True => skip PDFs whose output .txt exists and is non-empty
 LIMIT: int = 0      # 0 => all PDFs, else first N (deterministic)
-ERRORS_SAMPLE: int = 5  # how many (file, error) pairs to include in JSON
+ERRORS_SAMPLE: int = 10  # how many (file, error) pairs to include in JSON
 
 # =============================
 # Utilities
@@ -177,7 +174,8 @@ def run_process_pool(pdfs: List[Path], raw_root: Path, out_root: Path, skip_exis
 
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--cpu-name", required=True, help='Full CPU name string for JSON, e.g. "AMD Ryzen 7 3700X"')
+    ap.add_argument("input_path", type=Path, help="Folder containing PDFs")
+    ap.add_argument("--cpu-name", required=True)
     args = ap.parse_args(argv)
 
 
@@ -185,9 +183,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     max_workers = WORKERS if WORKERS and WORKERS > 0 else (cpu_cores or 1)
 
 
-    raw_root = RAW_DIR.resolve()
+    raw_root = args.input_path.resolve()
     out_base = OUT_DIR_BASE.resolve()
-    results_path = RESULTS_JSON.resolve()
+    results_path = (raw_root / "results.json").resolve()
 
 
     pdfs = list_pdfs(raw_root)
@@ -202,7 +200,7 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     payload: Dict[str, Any] = {
         "cpu_name": args.cpu_name,
-        "cup_name": args.cpu_name,  # kept because you requested this JSON entry name too
+        "cup_name": args.cpu_name,
         "cpu_cores_os_cpu_count": cpu_cores,
         "platform": {
             "system": platform.system(),
@@ -241,30 +239,4 @@ def main(argv: Optional[List[str]] = None) -> int:
 
         if "single" in payload["results"] and "process" in payload["results"]:
             t1 = float(payload["results"]["single"].get("total_time_sec") or 0.0)
-            t2 = float(payload["results"]["process"].get("total_time_sec") or 0.0)
-            speedup_pct = ((t1 - t2) / t1 * 100.0) if t1 > 0 else 0.0
-            ratio = (t1 / t2) if (t2 > 0) else None
-            payload["results"]["comparison"] = {
-                "single_total_sec": t1,
-                "process_total_sec": t2,
-                "speedup_percent": float(speedup_pct),
-                "time_ratio_single_over_process": ratio,
-            }
-
-
-        results_path.parent.mkdir(parents=True, exist_ok=True)
-        with results_path.open("w", encoding="utf-8") as f:
-            json.dump(payload, f, indent=2, ensure_ascii=False)
-        return 0
-
-
-    except Exception as e:
-        payload["fatal_error"] = "".join(traceback.format_exception_only(type(e), e)).strip()
-        results_path.parent.mkdir(parents=True, exist_ok=True)
-        with results_path.open("w", encoding="utf-8") as f:
-            json.dump(payload, f, indent=2, ensure_ascii=False)
-        return 2
-
-if __name__ == "__main__":
-    raise SystemExit(main())
-
+            t2 = float(payload["results"]["process"].get("total_time_sec")
